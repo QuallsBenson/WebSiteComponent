@@ -1,0 +1,21 @@
+
+parameters:
+    web_components.globals:
+        example: example
+        galvanfoundation.dev: site_galvan_full_bundle
+        sasi.vera.dev: site_sasi_bundle
+        site_title: Website Name
+        site_headline: A Cool Headline
+        favicon_path: path/to/site/favicons
+        callrail_required: false
+
+
+
+
+services:
+    web_components.twig:
+        class: WebComponents\SiteBundle\Twig\TwigExtension
+        calls: 
+            - [ setRouteService, [ "@router" ] ]
+        tags:
+            - { name: twig.extension }
