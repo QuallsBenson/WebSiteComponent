@@ -5,6 +5,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use ICanBoogie\Inflector as Inflector;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use WebComponents\SiteBundle\Exception\RequiredDataNotDefinedException;
 
 /**
 * Set's the default environment variables for current site
@@ -70,8 +71,17 @@ class SiteController extends Controller implements SiteControllerInterface{
 		//get site-wide global variables
 
 		$globals = $this->getGlobals();
-
 		$this->addSiteData( $globals );
+
+		//load and merge site-wide includes
+
+		if( isset( $globals['include'] ) )
+		{
+
+			$includeData = $this->getIncludeData( $globals['include'] );
+			$this->addSiteData( $includeData );
+
+		}
 
 		//get bundle specific Globals
 
@@ -191,7 +201,7 @@ class SiteController extends Controller implements SiteControllerInterface{
 
 	public function getDebugData()
 	{
-		$app     = $this->container;
+		$app     = $this->getContainer();
 
 		$devEnv  = in_array( $app->getParameter("kernel.environment"), ["dev", "test"] );
 
@@ -245,9 +255,42 @@ class SiteController extends Controller implements SiteControllerInterface{
 
 	}
 
+	/**
+	* check array to see if it contains required data
+	**/
+
+	public function containsRequiredData( $data, $die = false )
+	{
+
+		$required = isset( $data['require'] ) ? $data['require'] : [];
+
+
+		foreach( $required as $v )
+		{
+
+
+			if( !array_get( $data, $v ) )
+			{
+
+				if( !$die ) return false;
+
+				throw new RequiredDataNotDefinedException( "data: ".$v." is required, but is not defined" );
+
+			}
+
+
+		}
+
+		return true;
+
+	}
+
+
 
 	/**
-	* merges siteData variables with the parameters array, then calls parent render
+	* merges siteData variables with the parameters array, 
+	* checks for required values 
+	* then calls parent render
 	**/
 
 
@@ -255,6 +298,8 @@ class SiteController extends Controller implements SiteControllerInterface{
 	{
 
 		$parameters = array_merge( $this->getSiteData(), $parameters );
+
+		$this->containsRequiredData( $parameters, true );
 
 		return parent::render( $view, $parameters, $response );
 
