@@ -44,6 +44,18 @@ class SiteController extends Controller implements SiteControllerInterface{
 
     }
 
+    /**
+    * alias for getContainer()
+    * @return Symfony\Component\DependencyInjection\ContainerInterface; 
+    **/
+
+    public function app()
+    {
+
+    	return $this->getContainer();
+
+    }
+
 
     /**
     * Calls all initialization functions
@@ -251,7 +263,7 @@ class SiteController extends Controller implements SiteControllerInterface{
 
 		$bundle = $this->bundleName ?: $this->bundleName = $this->resolveBundleName();
 
-		return $underscore && $bundle ? Inflector::get("en")->underscore( $bundle ) : $bundle;		
+		return $underscore && $bundle ? Inflector::get("en")->underscore( $bundle ) : Inflector::get("en")->camelize( $bundle );		
 
 	}
 
@@ -267,7 +279,6 @@ class SiteController extends Controller implements SiteControllerInterface{
 
 		foreach( $required as $v )
 		{
-
 
 			if( !array_get( $data, $v ) )
 			{
@@ -300,6 +311,14 @@ class SiteController extends Controller implements SiteControllerInterface{
 		$parameters = array_merge( $this->getSiteData(), $parameters );
 
 		$this->containsRequiredData( $parameters, true );
+
+
+		if( strpos( $view, "::" ) === 0 )
+		{
+
+			$view = $this->getBundleName().substr($view, 1);
+
+		} 
 
 		return parent::render( $view, $parameters, $response );
 

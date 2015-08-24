@@ -1,3 +1,7 @@
-website_homepage:
-    path:     /hello/{name}
-    defaults: { _controller: WebsiteBundle:Default:index }
+website_bundle_partial:
+    path:     /static/partial
+    defaults: { _controller: WebsiteBundle:Static:partial }
+
+website_bundle_template:
+    path:     /static/{slug}
+    defaults: { _controller: WebsiteBundle:Static:template }
