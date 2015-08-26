@@ -63,7 +63,6 @@ class TwigExtension extends \Twig_Extension{
     }
 
 
-
     public function getName()
     {
         return 'wc_sitebundle_extension';

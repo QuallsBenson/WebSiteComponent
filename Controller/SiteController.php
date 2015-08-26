@@ -247,7 +247,12 @@ class SiteController extends Controller implements SiteControllerInterface{
 		$data  = $this->getSiteData();
 		$host  = $this->get("request")->getHost();
 
-		if( isset($data[$host]) ) return $data[$host];
+		foreach( $data['sites'] as $site )
+		{
+
+			if( $site['host'] === $host ) return $site['bundle'];
+
+		}
 
 		return false;
 	}
