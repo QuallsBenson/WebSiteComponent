@@ -1,0 +1,19 @@
+{
+    "name": "quallsbenson/site-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Richard Lee",
+            "email": "richard.lee@quallsbenson.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "WebComponents\\SiteBundle": ""
+        }
+    },
+    "target-dir": "WebComponents/SiteBundle",
+	"require": {
+	    "illuminate/support": "~4.2"
+	}
+}
