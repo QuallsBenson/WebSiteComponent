@@ -1,0 +1,8 @@
+
+website_bundle_partial:
+    path:     /partial
+    defaults: { _controller: WebsiteBundle:Static:partial }
+
+website_bundle_template:
+    path:     /{slug}
+    defaults: { _controller: WebsiteBundle:Static:template }

@@ -115,7 +115,17 @@ class SiteController extends Controller implements SiteControllerInterface{
 
 		}
 
+		//load and merge include data from request
 
+		$includes = $this->getRequestParam("_includes");
+
+		if( isset( $includes ) )
+		{
+
+			$includeData = $this->getIncludeData( $includes );
+			$this->addSiteData( $includeData );
+
+		}
 
 
 	}
@@ -204,6 +214,30 @@ class SiteController extends Controller implements SiteControllerInterface{
 	{
 
 		return $this->siteData;
+
+	}
+
+	/**
+	*   get a parameter from the request
+	**/
+
+	public function getRequestParam( $key )
+	{
+
+		$param = $this->app()->get('request')->attributes->get( $key );
+		return $this->parseParam( $param );
+
+	}
+
+	/**
+	*   parse parameter
+	**/
+
+	public function parseParam( $param )
+	{
+		$bundle  = $this->getBundleName( true ).".";
+
+		return str_replace('::', $bundle, $param );
 
 	}
 

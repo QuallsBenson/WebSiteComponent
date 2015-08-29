@@ -1,6 +1,7 @@
 <?php namespace WebComponents\SiteBundle\Controller;
 
 use WebComponents\SiteBundle\Controller\SiteController;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class StaticController extends SiteController
 {
