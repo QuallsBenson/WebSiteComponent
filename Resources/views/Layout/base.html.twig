@@ -48,7 +48,7 @@
     </head>
     <body class="[ site ] {% if debug|default(false) %} debug {% endif %} {{ page_body_class|default('') }}" >
 
-        <section class="[ site__outer ][ site-outer-section s_ ][ panel panel--tertiary ]">
+        <section class="[ site__outer site__outer--first ][ site-outer-section s_ ][ panel panel--tertiary ]">
 
           {% block site_outer_before %}{% endblock %}
 
@@ -88,7 +88,7 @@
         </section>
 
 
-        <section class="[ site__outer ][ site-outer-section s_ ][ panel panel--tertiary ]">
+        <section class="[ site__outer site__outer--last ][ site-outer-section s_ ][ panel panel--tertiary ]">
 
           {% block site_outer_after %}{% endblock %}
 
@@ -128,7 +128,7 @@
             <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
         <!--<![endif]-->
 
-        {% if callrail_required %}
+        {% if site_config['callrail_src'] is defined %}
 
         <script type="text/javascript" src="{{ site_config['callrail_src'] }}"></script>
 
