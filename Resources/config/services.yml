@@ -6,10 +6,7 @@ parameters:
         site_headline: A Cool Headline
         favicon_path: path/to/site/favicons
         callrail_required: false
-        sites:
-            - 
-                host:   "%sasi.vera%"
-                bundle: site_sasi_bundle
+        sites: []
 
 
 
