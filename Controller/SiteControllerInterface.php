@@ -1,10 +1,5 @@
 <?php namespace WebComponents\SiteBundle\Controller;
 
-
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use ICanBoogie\Inflector as Inflector;
-
 /**
 * Set's the default environment variables for current site
 **/

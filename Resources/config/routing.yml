@@ -1,8 +1,15 @@
 
 
-website_bundle:
+website_bundle_static:
     resource: "@WebsiteBundle/Resources/config/static/routing.yml"
     prefix:   /_static 
     defaults: 
         _includes: 
             - "::globals.static"
+
+website_bundle_unslash:
+    path:     /{path}
+    defaults: { _controller: WebsiteBundle:Redirect:removeTrailingSlash }
+    requirements:
+        path: .*/$
+    methods: [GET]
