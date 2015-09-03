@@ -9,12 +9,14 @@ parameters:
         sites: []
 
 
-
-
 services:
     web_components.twig:
         class: WebComponents\SiteBundle\Twig\TwigExtension
         calls: 
+            - [ setContainer,  [ "@service_container" ] ]
             - [ setRouteService, [ "@router" ] ]
+            - [ setImageFactory, [ "@web_components.elements.image" ] ]
         tags:
             - { name: twig.extension }
+    web_components.elements.image:
+        class: WebComponents\SiteBundle\Elements\Image\ImageFactory

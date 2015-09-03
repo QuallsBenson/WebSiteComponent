@@ -2,9 +2,18 @@
 
 
 use Symfony\Component\Routing\Router;
+use Twig_Environment;
+use WebComponents\SiteBundle\Elements\Image\ImageInterface;
+use WebComponents\SiteBundle\Elements\Image\Image;
+use WebComponents\SiteBundle\Elements\Image\ImageFactory;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 
-class TwigExtension extends \Twig_Extension{
+class TwigExtension extends \Twig_Extension implements ContainerAwareInterface{
+
+
+    use \WebComponents\SiteBundle\App\AppTrait;
 
 
 	public function setRouteService( Router $router )
@@ -14,6 +23,7 @@ class TwigExtension extends \Twig_Extension{
 
 	}
 
+
 	public function getRouteService()
 	{
 
@@ -22,11 +32,40 @@ class TwigExtension extends \Twig_Extension{
 	}
 
 
+    public function setImageFactory( ImageFactory $image )
+    {
+
+        $this->imageFactory = $image;
+
+    }
+
+
+    public function getImageFactory()
+    {
+
+        return $this->imageFactory;
+
+    }
+
+
     public function getFunctions()
     {
+
         return array(
             new \Twig_SimpleFunction('url', array($this, 'urlFunction')),
+            new \Twig_SimpleFunction('retina', array($this, 'retinaFunction')),
+            new \Twig_SimpleFunction('retina_background', array($this, 'retinaFunction')),
         );
+
+    }
+
+    public function getFilters()
+    {
+
+        return array(
+            new \Twig_SimpleFilter('Image', array($this, 'imageFilter')),
+        );
+
     }
 
     /**
@@ -59,6 +98,76 @@ class TwigExtension extends \Twig_Extension{
     	}
 
     	return call_user_func_array( [ $this->getRouteService(), "generate" ] , $args );
+
+    }
+
+    /**
+    *  creates markup for a retina image 
+    *  @return markup for retina image
+    **/
+
+    public function retinaFunction( ImageInterface $image, $ratio = '1x', $ratio2 = '2x' )
+    {
+
+        $markup = '';
+
+        $ratios = func_get_args();
+
+        //remove image from ratios array
+        unset( $ratios[0] );
+
+        //merge default values with user input
+        $ratios = array_merge( [ $ratio, $ratio2 ], array_values( $ratios ) );
+
+        //get the asset helper to correct urls
+        $asset  = $this->app()->get("templating.helper.assets");
+
+
+        for( $i = 0; isset($ratios[$i]); $i++ )
+        {
+
+            $ratio   = $ratios[$i];
+
+            //skip to the next if ratio is not available
+            if( !$image->hasRatio( $ratio ) ) continue;
+
+
+            $src     = $asset->getUrl( $image->src( $ratio ) );
+
+
+            $markup .= "data-{$ratio}={$src} "; // data-1x="path/to/image"
+
+        }
+
+
+        return $markup;
+
+    }
+
+    /**
+    *   @return WebComponents\SiteBundle\Elements\Image\Image
+    **/
+
+    public function imageFilter( $image )
+    {
+
+        //if already image object return 
+        if( $image instanceof Image ) return $image;
+
+
+        $factory = $this->getImageFactory();
+
+        //if the image is an array, pass it the the image factory
+        //as is, otherwise convert to array with default ratio
+
+        if( !is_array( $image ) )
+        {
+            $image = [
+                '1x' => $image
+            ];
+        }
+
+        return $factory->make( $image );
 
     }
 
