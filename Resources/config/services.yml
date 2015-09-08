@@ -15,6 +15,11 @@ parameters:
             page:
                 repository: 'web_components.content.page'
                 with: [ 'post:list' ]
+                viewless: false
+                templates:
+                    list: '::LandingPage:index.html.twig'
+                    view: '::Blog:read.html.twig'
+                ajax: true
 
 
 

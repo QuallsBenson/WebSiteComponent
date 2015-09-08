@@ -3,6 +3,9 @@
 use WebComponents\SiteBundle\Controller\SiteController;
 use WebComponents\SiteBundle\Content\UndefinedContentTypeException;
 use WebComponents\SiteBundle\Content\ContentRepositoryInterface;
+use WebComponents\SiteBundle\Content\ContentUnavailableException;
+use WebComponents\SiteBundle\Content\ContentConfigException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 // List Routes:
 //----------------------------
@@ -124,8 +127,6 @@ class ContentController extends SiteController
 		if( $action === 'list' )
 		{
 
-			var_dump( $path, 'list' );
-
 			//get data from repository and push to siteData array
 			$repo = $this->listAction( $content, $category, $page );
 
@@ -133,25 +134,27 @@ class ContentController extends SiteController
 		else
 		{
 
-			var_dump( $path, 'view' );
-
 			//get data from repository and push to siteData array
 			$repo = $this->viewAction( $slug, $content, $category );
 
 		}
 
+		$config = $repo->getContentConfig();
+
 		//load any linked/default content
 		$queryInfo = [ 
 			'category' => $category, 
             'page'     => $page, 
-            'slug'     => @$slug 
+            'slug'     => @$slug,
+            'action'   => $action,
+            'template' => @$config['templates'][ $action ] 
 		];
 
 
 		$this->addLinkedData( $repo, $queryInfo );
 
 
-		return $this->createResponse( $content.":".$action, $queryInfo, 200 );
+		return $this->createResponse( $repo, $queryInfo, 200 );
 
 
 	}
@@ -175,7 +178,7 @@ class ContentController extends SiteController
 
 
 		//make content avaiable to the view
-		$this->siteData[ 'content' ][ $contentType ] = $content;
+		$this->siteData[ 'content' ][ $repo->getContentId() ] = $content;
 
 
 		//return the repository
@@ -196,7 +199,7 @@ class ContentController extends SiteController
 		$content = $repo->viewContent( $slug, $category );
 
 		//send to view
-		$this->siteData[ 'content' ][ $contentType ] = $content;
+		$this->siteData[ 'content' ][ $repo->getContentId() ] = $content;
 
 		//return the repository
 		return $repo;
@@ -211,7 +214,7 @@ class ContentController extends SiteController
 
 		if( !$config )
 		{
-			throw UndefinedContentTypeException("Content-type: '" .$contentType ."'' is not defined in global data" );
+			throw new UndefinedContentTypeException("Content-type: '" .$contentType ."'' is not defined in global data" );
 		}
 
 
@@ -237,19 +240,56 @@ class ContentController extends SiteController
 
 	}
 
-	public function getLinkedContent( ContentRepositoryInterface $content, $data )
+	public function addLinkedData( ContentRepositoryInterface $content, $data )
 	{
 
 		return [];
 
 	}
 
-	public function createResponse( $action, $data, $code )
+	public function createResponse( ContentRepositoryInterface $repo, $data, $code = 200 )
 	{
 
-		var_dump( $this->siteData['content'] ); exit;
+		$config  = $repo->getContentConfig();
+		$ajax    = $this->get('request')->isXmlHttpRequest(); 
 
-		return null;
+		//if content_type is viewless or
+		//if an ajax request is being made, return 
+		//info as json
+
+		if( @$config['viewless'] === true || $ajax )
+		{
+
+			//if ajax request is being made, and ajax is set
+			//but set to bool false, throw access denied error
+
+			if( $ajax && ( @$config['ajax'] === false ) )	
+			{
+
+				throw new ContentUnavailableException("Content-Type: '". $repo->getContentId() ."' is not available via ajax request");
+
+			}
+
+			//return a json response with only content, and data passed
+			//don't return all site data, as it may be sensitive
+			$param = [ 'content' => $this->siteData['content'] ];
+			$param = array_merge( $param, $data );
+
+
+			return new JsonResponse( $param, $code );		
+
+		}
+
+		if( !$data['template'] )
+		{
+
+			throw new ContentConfigException("No '".$data['action'] ."' Template is configured for Content-Type: '".$repo->getContentId() );
+
+		}
+
+		//do a default render with the template
+
+		return $this->render( $data['template'], $data );
 
 	}
 

@@ -7,6 +7,10 @@ website_bundle_static:
         _includes: 
             - "::globals.static"
 
+website_bundle_content:
+    resource: "@WebsiteBundle/Resources/config/content/routing.yml"
+    prefix:   /           
+
 website_bundle_unslash:
     path:     /{path}
     defaults: { _controller: WebsiteBundle:Redirect:removeTrailingSlash }

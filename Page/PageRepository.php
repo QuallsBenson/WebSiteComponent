@@ -43,5 +43,12 @@ class PageRepository implements ContentRepositoryInterface{
 
 	}
 
+	public function getContentId()
+	{
+
+		return 'page';
+
+	}
+
 
 }

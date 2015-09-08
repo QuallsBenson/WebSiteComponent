@@ -16,4 +16,7 @@ interface ContentRepositoryInterface{
 	public function viewContent( $slug, $category = null );
 
 
+	public function getContentId();
+
+
 }
