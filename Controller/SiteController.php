@@ -119,7 +119,7 @@ class SiteController extends Controller implements SiteControllerInterface{
 
 		$includes = $this->getRequestParam("_includes");
 
-		if( isset( $includes ) )
+		if( $includes )
 		{
 
 			$includeData = $this->getIncludeData( $includes );

@@ -7,6 +7,16 @@ parameters:
         favicon_path: path/to/site/favicons
         callrail_required: false
         sites: []
+        content_types:
+            default: page
+            post:
+                repository: 'web_components.content.post'
+
+            page:
+                repository: 'web_components.content.page'
+                with: [ 'post:list' ]
+
+
 
 
 services:
@@ -20,3 +30,9 @@ services:
             - { name: twig.extension }
     web_components.elements.image:
         class: WebComponents\SiteBundle\Elements\Image\ImageFactory
+
+    web_components.content.page:
+        class: WebComponents\SiteBundle\Page\PageRepository
+
+    web_components.content.post:
+        class: WebComponents\SiteBundle\Content\Post\PostRepository        

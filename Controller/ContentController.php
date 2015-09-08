@@ -1,8 +1,25 @@
 <?php namespace WebComponents\SiteBundle\Controller;
 
 use WebComponents\SiteBundle\Controller\SiteController;
+use WebComponents\SiteBundle\Content\UndefinedContentTypeException;
+use WebComponents\SiteBundle\Content\ContentRepositoryInterface;
 
+// List Routes:
+//----------------------------
+// content
+// content/category
+// content/category/page
 
+// View Routes
+//----------------------------
+// content/category/slug
+// content/view/slug
+// content
+
+// Search Routes
+//----------------------------
+// content/search/?keywords=term?category
+// search/?content[]=1&content[]=2
 
 
 class ContentController extends SiteController
@@ -13,8 +30,21 @@ class ContentController extends SiteController
 
 	public function resolveAction( $path )
 	{
- 
-		$path      = explode("/", $path);
+
+		//strip trailing slash from path if it has one
+		if( $path[ strlen( $path ) - 1 ] === "/"  ) 
+		{
+			$path = substr( $path, 0, strlen( $path )-1 );
+		}
+
+		//split path into parts
+		$path      = explode("/", $path );
+
+
+		//if empty variables in array, request was malformed
+		if( in_array( '', $path ) ) throw $this->createNotFoundException();
+
+
 		$content   = @$path[0];
 
 		$paginated = ( (int) end( $path ) ) > 0; 
@@ -36,16 +66,17 @@ class ContentController extends SiteController
 		//if path is paginated ex:
 		//      /content/category/page
 		//      /content/page
+		//      /content
 
 		//perform list action on content-type
 
-		if( $paginated && ( $count == 2 || $count === 3 ) )
+		if( $paginated && ( $count == 2 || $count === 3 ) || ( !$paginated && $count === 1 ) )
 		{
 
 			$action   = 'list';
 			$page     = (int) end( $path );
 
-			$category = ( $count === 2 ) ? 'all' : $path[1];
+			$category = ( $count <= 2 ) ? 'all' : $path[1];
 
 		}
 
@@ -54,6 +85,7 @@ class ContentController extends SiteController
 		else if( $count == 2 )
 		{
 
+			$action   = 'list';
 			$category = end( $path );
 
 		}
@@ -88,29 +120,38 @@ class ContentController extends SiteController
 
 		}
 
+
 		if( $action === 'list' )
 		{
 
-			$data = $this->listAction( $content, $category, $page );
+			var_dump( $path, 'list' );
+
+			//get data from repository and push to siteData array
+			$repo = $this->listAction( $content, $category, $page );
 
 		}
 		else
 		{
 
-			$data = $this->viewAction( $slug, $content, $category );
+			var_dump( $path, 'view' );
+
+			//get data from repository and push to siteData array
+			$repo = $this->viewAction( $slug, $content, $category );
 
 		}
 
 		//load any linked/default content
-		$linkedData = $this->getlinkedContent( $content, $action, [
-									 'data'     => $data,
-									 'category' => $category,
-									 'page'     => $page,
-									 'slug'     => @$slug  
-								]);
+		$queryInfo = [ 
+			'category' => $category, 
+            'page'     => $page, 
+            'slug'     => @$slug 
+		];
 
 
-		return $this->createResponse( $content.":".$action, array_merge( $data, $linkedData ), 200 );
+		$this->addLinkedData( $repo, $queryInfo );
+
+
+		return $this->createResponse( $content.":".$action, $queryInfo, 200 );
 
 
 	}
@@ -125,9 +166,20 @@ class ContentController extends SiteController
 	{
 
 		$page = (int) ( $page ?: $page );
+
+
 		$repo = $this->getRepository( $contentType );
 
 
+		$content = $repo->listContent( $category, $page );
+
+
+		//make content avaiable to the view
+		$this->siteData[ 'content' ][ $contentType ] = $content;
+
+
+		//return the repository
+		return $repo;
 
 	}
 
@@ -135,25 +187,44 @@ class ContentController extends SiteController
 	* display single record from database
 	**/
 
-	public function viewAction( $contentType, $category = null )
+	public function viewAction( $slug, $contentType, $category = null )
 	{
 
+		$repo    = $this->getRepository( $contentType );
 
+		//load the view content by slug
+		$content = $repo->viewContent( $slug, $category );
+
+		//send to view
+		$this->siteData[ 'content' ][ $contentType ] = $content;
+
+		//return the repository
+		return $repo;
 
 	}
 
 	public function getRepository( $contentType )
 	{
 
+		$data    = $this->getSiteData();
+		$config  = @$data['content_types'][ $contentType ];
+
+		if( !$config )
+		{
+			throw UndefinedContentTypeException("Content-type: '" .$contentType ."'' is not defined in global data" );
+		}
 
 
+		//TODO: put this code in try catch block, as it may fail
+		//to give user more detailed fail message
 
-	}
+		$repo = $this->get( $config['repository'] );
 
-	public function getContentRepositoryService( $alias )
-	{
+		//set configuration
+		$repo->setContentConfig( $config );
 
-		return $alias;
+
+		return $repo;
 
 	}
 
@@ -161,21 +232,24 @@ class ContentController extends SiteController
 	public function getDefaultContentType()
 	{
 
-		return 'type';
+		$data = $this->getSiteData();
+		return @$data['content_types']['default'];
 
 	}
 
-	public function getLinkedContent( $content, $action, $data )
+	public function getLinkedContent( ContentRepositoryInterface $content, $data )
 	{
 
 		return [];
 
 	}
 
-	public function createResponse( $action,  )
+	public function createResponse( $action, $data, $code )
 	{
 
-		//return 
+		var_dump( $this->siteData['content'] ); exit;
+
+		return null;
 
 	}
 
