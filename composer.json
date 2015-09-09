@@ -15,6 +15,7 @@
     "target-dir": "WebComponents/SiteBundle",
     "require": {
         "illuminate/support": "~4.2",
-        "icanboogie/inflector": "dev-master"
+        "icanboogie/inflector": "dev-master",
+        "quallsbenson/web-search": "dev-master"
     }
 }

@@ -28,7 +28,32 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class ContentController extends SiteController
 {
 
-	protected $CONTENT_METHODS = [ 'list', 'view' ];
+	static protected $CONTENT_METHODS = [ 'list', 'view' ];
+
+/*
+	public function initSiteData()
+	{
+
+		$content = $this->getRequestParam( 'with' );
+
+
+		if( !empty( $content ) )
+		{
+			
+			foreach( $content as $c )
+			{
+
+				if( str )
+
+			}
+			//$this->siteData['content']
+		}
+
+
+		return parent::initSiteData();
+
+	}
+*/	
 
 
 	public function resolveAction( $path )
@@ -42,10 +67,6 @@ class ContentController extends SiteController
 
 		//split path into parts
 		$path      = explode("/", $path );
-
-
-		//if empty variables in array, request was malformed
-		if( in_array( '', $path ) ) throw $this->createNotFoundException();
 
 
 		$content   = @$path[0];
@@ -65,6 +86,9 @@ class ContentController extends SiteController
 		    $content = @$path[0];
 
 		}
+
+		//if empty variables in array, request was malformed
+		if( in_array( '', $path ) ) throw $this->createNotFoundException();
 
 		//if path is paginated ex:
 		//      /content/category/page
@@ -113,13 +137,37 @@ class ContentController extends SiteController
 
 		}
 
-		//finally, if not matched, requested is malformed
-		//throw not found exception
+		//else if it contains only one, and a default
+		//action is set for the content, then fire that
+		//action using the content type name as the slug/category
 
 		else
 		{
 
-			throw $this->createNotFoundException();
+			$repoConfig = $this->getRepository( $content )->getContentConfig();
+
+			//if a valid action is set, set that action
+
+			$defaults = @$repoConfig['defaults'];
+
+
+			if( in_array( $defaults['action'], self::$CONTENT_METHODS )  )
+			{
+
+				$slug     = @$defaults['slug']     ?: $content;
+				$category = @$defaults['category'] ?: $content;  
+				$action   = $defaults['action']; 
+
+			}
+
+			//else give a not found exception
+
+			else
+			{
+
+				throw $this->createNotFoundException();
+
+			}
 
 		}
 
@@ -176,6 +224,8 @@ class ContentController extends SiteController
 
 		$content = $repo->listContent( $category, $page );
 
+		//todo throw an error if no content set
+
 
 		//make content avaiable to the view
 		$this->siteData[ 'content' ][ $repo->getContentId() ] = $content;
@@ -228,6 +278,32 @@ class ContentController extends SiteController
 
 
 		return $repo;
+
+	}
+
+	public function getContentData( $content, array $param = array() )
+	{
+
+
+		if( is_string( $content ) )
+		{
+
+			//if $content is formatted 'type:action', get the action
+			if( strpos( $content, ":") !== false )
+			{
+
+				$action = explode( ":", $content )[1];
+
+				if(!in_array( $action, self::$CONTENT_METHODS ))
+				{
+
+					throw new \InvalidArgumentException("Cannot call action '".$action."' on Content-Type, only content" );
+
+				}
+
+			}
+
+		}
 
 	}
 

@@ -7,6 +7,7 @@ parameters:
         favicon_path: path/to/site/favicons
         callrail_required: false
         sites: []
+
         content_types:
             default: page
             post:
@@ -17,9 +18,12 @@ parameters:
                 with: [ 'post:list' ]
                 viewless: false
                 templates:
-                    list: '::LandingPage:index.html.twig'
+                    list: '::x:index.html.twig'
                     view: '::Blog:read.html.twig'
                 ajax: true
+                defaults:
+                    action: list
+                    category: magazines
 
 
 
