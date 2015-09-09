@@ -1,6 +1,7 @@
 <?php namespace WebComponents\SiteBundle\Controller;
 
 use WebComponents\SiteBundle\Controller\SiteController;
+use Quallsbenson\WebComponents\Search\Interfaces\SearchProviderInterface;
 
 
 // Search Routes
@@ -21,9 +22,60 @@ class SearchContentController extends ContentController
 		$content  = $content ? (array) $content : $query->get("content");
 		$keywords = $query->get("keywords"); 
 
+		//if no keywords given, show search landing page
+		if( !$keywords )
+		{
+			return $this->indexAction();
+		}
+
+
 		//perform search
-		$search  = $this->searchContent( $keywords, $content );
+		$results  = $this->searchContent( $keywords, $content )->results();
+
+		//sort results by relevence
+		$results->sort();
+
+
+		//if filters are defined, filter results
+		if( $filters = $query->get("filters") )
+		{
+
+			$results = $this->filterResults( $filters, $results );
+
+		}
+
+		//otherwise just use all results		
+		else
+		{
+
+			$results = $results->all();
+
+		}
+
+		//send search results to sitedata
+		$this->siteData['content']['search'] = [
+				'keywords'     => $keywords,
+				'filters'      => $filters,
+				'results'      => $results,
+				'contentTypes' => $content
+		];
+
+		$config = $this->getSearchConfig();
+
+		return $this->createResponse( $config, 'search', [
+						'action'   => 'results',
+						'template' => $config['templates']['results']
+			   ] );
 		
+
+	}
+
+	public function indexAction()
+	{
+
+		$config = $this->getSearchConfig();
+
+		return $this->createResponse( $config,  )
 
 	}
 
@@ -44,7 +96,45 @@ class SearchContentController extends ContentController
 
 		//return search
 
-		return $this->get("website.search_provider")->search( $keywords, $repositories );
+		
+
+		return $this->getSearchProvider()->search( $keywords, $repositories );
+
+	}
+
+
+	public function filterResults( array $filters, SearchResultProviderInterface $results )
+	{
+
+
+		return $results->filter( $filters, 1 )->allFiltered();
+
+
+	}
+
+	public function getSearchProvider()
+	{
+
+		$searchServiceId = $this->siteData['service.search_provider'];
+
+		$provider = $this->get( $searchServiceId );
+
+		if( !$provider instanceof SearchProviderInterface )
+		{
+
+			throw new \InvalidArgumentException(" Search Provider: '" .$searchServiceId ."', must implement Quallsbenson\WebComponents\Search\Interfaces\SearchProviderInterface ");
+
+		}
+
+		return $provider;
+
+	}
+
+
+	public function getSearchConfig()
+	{
+
+		$config = $this->siteData['config.search'];
 
 	}
 

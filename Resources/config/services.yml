@@ -1,12 +1,18 @@
 
 parameters:
+
     web_components.globals:
-        example: example
+        example: ral
         site_title: Website Name
         site_headline: A Cool Headline
         favicon_path: path/to/site/favicons
         callrail_required: false
-        sites: []
+        includes: []
+        service.search_provider: 'web_components.search_provider'
+        sites: 
+            -
+                bundle: RALSiteBundle
+                host:   www.ral.dev
 
         content_types:
             default: page
@@ -18,12 +24,19 @@ parameters:
                 with: [ 'post:list' ]
                 viewless: false
                 templates:
-                    list: '::x:index.html.twig'
+                    list: '::LandingPage:index.html.twig'
                     view: '::Blog:read.html.twig'
                 ajax: true
                 defaults:
                     action: list
-                    category: magazines
+                    category: default
+
+        config.search:
+            searchable: [ 'page' ]
+            templates:
+                index: ''
+                results: ''
+            ajax: true   
 
 
 
@@ -44,4 +57,15 @@ services:
         class: WebComponents\SiteBundle\Page\PageRepository
 
     web_components.content.post:
-        class: WebComponents\SiteBundle\Content\Post\PostRepository        
+        class: WebComponents\SiteBundle\Content\Post\PostRepository     
+
+    web_components.search_provider:
+        class: Quallsbenson\WebComponents\Search\SearchProvider
+        arguments: [ '@web_components.search_result_provider', '@web_components.search_result_filter' ]
+
+    web_components.search_result_provider:
+        class: Quallsbenson\WebComponents\Search\SearchResultProviderFactory
+
+    web_components.search_result_filter:
+        class: Quallsbenson\WebComponents\Search\SearchResultFilter
+            -

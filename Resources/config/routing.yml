@@ -11,6 +11,12 @@ website_bundle_content:
     resource: "@WebsiteBundle/Resources/config/content/routing.yml"
     prefix:   /           
 
+website_bundle_search:
+    resource: "@WebsiteBundle/Resources/config/search/routing.yml"
+    prefix:   /search           
+
+
+
 website_bundle_unslash:
     path:     /{path}
     defaults: { _controller: WebsiteBundle:Redirect:removeTrailingSlash }

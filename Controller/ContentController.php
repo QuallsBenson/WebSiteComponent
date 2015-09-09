@@ -202,7 +202,7 @@ class ContentController extends SiteController
 		$this->addLinkedData( $repo, $queryInfo );
 
 
-		return $this->createResponse( $repo, $queryInfo, 200 );
+		return $this->createResponse( $repo->getContentConfig(), $repo->getContentId(), $queryInfo, 200 );
 
 
 	}
@@ -323,10 +323,9 @@ class ContentController extends SiteController
 
 	}
 
-	public function createResponse( ContentRepositoryInterface $repo, $data, $code = 200 )
+	public function createResponse( array $config, $contentType, array $data = array(), $code = 200 )
 	{
 
-		$config  = $repo->getContentConfig();
 		$ajax    = $this->get('request')->isXmlHttpRequest(); 
 
 		//if content_type is viewless or
@@ -342,7 +341,7 @@ class ContentController extends SiteController
 			if( $ajax && ( @$config['ajax'] === false ) )	
 			{
 
-				throw new ContentUnavailableException("Content-Type: '". $repo->getContentId() ."' is not available via ajax request");
+				throw new ContentUnavailableException("Content-Type: '". $contentType ."' is not available via ajax request");
 
 			}
 
@@ -359,7 +358,7 @@ class ContentController extends SiteController
 		if( !$data['template'] )
 		{
 
-			throw new ContentConfigException("No '".$data['action'] ."' Template is configured for Content-Type: '".$repo->getContentId() );
+			throw new ContentConfigException("No '".$data['action'] ."' Template is configured for Content-Type: '".$contentType );
 
 		}
 
