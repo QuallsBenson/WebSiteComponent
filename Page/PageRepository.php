@@ -2,12 +2,29 @@
 
 
 use WebComponents\SiteBundle\Content\ContentRepositoryInterface;
+use Quallsbenson\WebComponents\Search\Interfaces\SearchableInterface;
 
 
-class PageRepository implements ContentRepositoryInterface{
+class PageRepository implements ContentRepositoryInterface, SearchableInterface{
 
 
 	protected $config = [];
+
+
+	public function search( $keywords )
+	{
+
+		return [];
+
+	}
+
+
+	public function searchId()
+	{
+
+		return $this->getContentId();
+
+	}
 
 
 

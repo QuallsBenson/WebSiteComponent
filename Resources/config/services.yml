@@ -68,4 +68,3 @@ services:
 
     web_components.search_result_filter:
         class: Quallsbenson\WebComponents\Search\SearchResultFilter
-            -

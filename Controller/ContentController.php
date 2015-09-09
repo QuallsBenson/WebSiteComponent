@@ -90,14 +90,25 @@ class ContentController extends SiteController
 		//if empty variables in array, request was malformed
 		if( in_array( '', $path ) ) throw $this->createNotFoundException();
 
+
+		//if it's a search forward to the search controller
+		if( ($count === 1 || $count === 2) && $content === 'search' )
+		{
+
+			return $this->forward("WebsiteBundle:SearchContent:search", [
+				    'request' => $this->get('request')
+			]);
+ 
+		}
+
+
 		//if path is paginated ex:
 		//      /content/category/page
 		//      /content/page
-		//      /content
 
 		//perform list action on content-type
 
-		if( $paginated && ( $count == 2 || $count === 3 ) || ( !$paginated && $count === 1 ) )
+		if( $paginated && ( $count == 2 || $count === 3 ) )
 		{
 
 			$action   = 'list';
@@ -146,7 +157,7 @@ class ContentController extends SiteController
 
 			$repoConfig = $this->getRepository( $content )->getContentConfig();
 
-			//if a valid action is set, set that action
+			//if a valid config action is given, set as action
 
 			$defaults = @$repoConfig['defaults'];
 

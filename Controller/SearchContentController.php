@@ -2,7 +2,7 @@
 
 use WebComponents\SiteBundle\Controller\SiteController;
 use Quallsbenson\WebComponents\Search\Interfaces\SearchProviderInterface;
-
+use Symfony\Component\HttpFoundation\Request;
 
 // Search Routes
 //----------------------------
@@ -13,17 +13,22 @@ use Quallsbenson\WebComponents\Search\Interfaces\SearchProviderInterface;
 class SearchContentController extends ContentController
 {
 
-	public function searchAction( $content = null, Request $request )
+	public function searchAction( Request $request, $content = null )
 	{
 
 		//if no content type given search all searchable content from query
 		$query    = $request->query;
 
+
 		$content  = $content ? (array) $content : $query->get("content");
+		$content  = $content ?: $this->getDefaultSearchContent();
+
+
 		$keywords = $query->get("keywords"); 
 
-		//if no keywords given, show search landing page
-		if( !$keywords )
+
+		//if no keywords/content given, show search landing page
+		if( !$keywords || !$content )
 		{
 			return $this->indexAction();
 		}
@@ -33,7 +38,7 @@ class SearchContentController extends ContentController
 		$results  = $this->searchContent( $keywords, $content )->results();
 
 		//sort results by relevence
-		$results->sort();
+		$results->order();
 
 
 		//if filters are defined, filter results
@@ -51,6 +56,7 @@ class SearchContentController extends ContentController
 			$results = $results->all();
 
 		}
+		
 
 		//send search results to sitedata
 		$this->siteData['content']['search'] = [
@@ -75,7 +81,10 @@ class SearchContentController extends ContentController
 
 		$config = $this->getSearchConfig();
 
-		return $this->createResponse( $config,  )
+		return $this->createResponse( $config, 'search', [
+						'action'   => 'index',
+						'template' => $config['templates']['index']
+			]);
 
 	}
 
@@ -95,7 +104,6 @@ class SearchContentController extends ContentController
 		}
 
 		//return search
-
 		
 
 		return $this->getSearchProvider()->search( $keywords, $repositories );
@@ -134,7 +142,14 @@ class SearchContentController extends ContentController
 	public function getSearchConfig()
 	{
 
-		$config = $this->siteData['config.search'];
+		return $this->siteData['config.search'];
+
+	}
+
+	public function getDefaultSearchContent()
+	{
+
+		return $this->getSearchConfig()['defaults']['content'];
 
 	}
 
