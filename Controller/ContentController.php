@@ -59,21 +59,31 @@ class ContentController extends SiteController
 	public function resolveAction( $path )
 	{
 
-		//strip trailing slash from path if it has one
-		if( $path[ strlen( $path ) - 1 ] === "/"  ) 
+		if( $path )
 		{
-			$path = substr( $path, 0, strlen( $path )-1 );
+
+			//strip trailing slash from path if it has one
+			if( @$path[ strlen( $path ) - 1 ] === "/"  ) 
+			{
+				$path = substr( $path, 0, strlen( $path )-1 );
+			}
+
+			//split path into parts
+			$path      = explode("/", $path );
+
+			$content   = @$path[0];
+
 		}
+		else 
+		{
 
-		//split path into parts
-		$path      = explode("/", $path );
+			$path = [];
 
-
-		$content   = @$path[0];
+		}
+		
 
 		$paginated = ( (int) end( $path ) ) > 0; 
 		$page      = null;
-
 		$count     = count( $path );
 
 		//add the default contentType to the beginning of the path parts
@@ -194,7 +204,7 @@ class ContentController extends SiteController
 		{
 
 			//get data from repository and push to siteData array
-			$repo = $this->viewAction( $slug, $content, $category );
+			$repo = $this->viewAction( $content, $slug, $category );
 
 		}
 
@@ -210,7 +220,11 @@ class ContentController extends SiteController
 		];
 
 
-		$this->addLinkedData( $repo, $queryInfo );
+		$this->addLinkedContent( $repo, $queryInfo );
+
+		echo "<pre>";
+
+		var_dump( $this->siteData['content'] ); exit;
 
 
 		return $this->createResponse( $repo->getContentConfig(), $repo->getContentId(), $queryInfo, 200 );
@@ -219,12 +233,11 @@ class ContentController extends SiteController
 	}
 
 
-
 	/**
 	* lists rows from database
 	**/
 
-	public function listAction( $contentType, $category, $page = null )
+	public function listAction( $contentType, $category = null, $page = null )
 	{
 
 		$page = (int) ( $page ?: $page );
@@ -251,7 +264,7 @@ class ContentController extends SiteController
 	* display single record from database
 	**/
 
-	public function viewAction( $slug, $contentType, $category = null )
+	public function viewAction( $contentType, $slug, $category = null )
 	{
 
 		$repo    = $this->getRepository( $contentType );
@@ -269,6 +282,14 @@ class ContentController extends SiteController
 
 	public function getRepository( $contentType )
 	{
+
+		//if the content-type is already a repository
+		//just return it
+
+		if( $contentType instanceof ContentRepositoryInterface )
+		{
+			return $contentType;
+		}
 
 		$data    = $this->getSiteData();
 		$config  = @$data['content_types'][ $contentType ];
@@ -292,29 +313,69 @@ class ContentController extends SiteController
 
 	}
 
-	public function getContentData( $content, array $param = array() )
+
+	public function evalContentExpression( $content )
 	{
 
+		list( $repo, $param ) = $this->parseContentExpression( $content );
 
-		if( is_string( $content ) )
+		$param = array_merge( [$repo[0]], $param );
+
+		return call_user_func_array( [ $this, $repo[1] ], $param );
+
+	}
+
+
+	public function parseContentExpression( $content )
+	{
+
+		//parameters to be called with content callable
+		$param = [];
+
+		//if content is array, the second element is treated like parameters
+		if( is_array( $content ) ){
+
+			list( $content, $param ) = $content;
+
+			//make params an array if it's not already
+			if( !is_array( $param ) ) $param = (array) $param;
+
+		}
+
+		//cast content expression to string
+		$content = (string) $content;
+
+
+		//if $content is formatted 'type:action', get the action
+		if( strpos( $content, ":") !== false )
 		{
 
-			//if $content is formatted 'type:action', get the action
-			if( strpos( $content, ":") !== false )
+			list($content, $action) = explode( ":", $content );
+
+
+			if(!in_array( $action, self::$CONTENT_METHODS ))
 			{
 
-				$action = explode( ":", $content )[1];
-
-				if(!in_array( $action, self::$CONTENT_METHODS ))
-				{
-
-					throw new \InvalidArgumentException("Cannot call action '".$action."' on Content-Type, only content" );
-
-				}
+				throw new \InvalidArgumentException("Cannot call undefined action '".$action."' on Content-Type" );
 
 			}
 
+			$repo  = $this->getRepository( $content );
+
+
+			return [ [ $repo, $action.'Action' ], $param ];
+
 		}
+
+		//else give invalid config exception
+
+		else{
+
+
+			throw new ContentConfigException(" Invalid format '".$content."' given for Content-Type expression, must be contentType:action");
+		
+		}
+
 
 	}
 
@@ -327,23 +388,39 @@ class ContentController extends SiteController
 
 	}
 
-	public function addLinkedData( ContentRepositoryInterface $content, $data )
+
+	public function addLinkedContent( ContentRepositoryInterface $content )
 	{
 
-		return [];
+		$config = $content->getContentConfig();
+
+		if( isset( $config['with'] ) )
+		{
+
+			foreach( $config['with'] as $expression )
+			{
+
+				$this->evalContentExpression( $expression );
+
+			}
+
+		}
 
 	}
 
+
 	public function createResponse( array $config, $contentType, array $data = array(), $code = 200 )
 	{
+		$request = $this->get('request');
 
-		$ajax    = $this->get('request')->isXmlHttpRequest(); 
+		$ajax    = $request->isXmlHttpRequest();
+		$format  = $request->query->get("format"); 
 
 		//if content_type is viewless or
 		//if an ajax request is being made, return 
 		//info as json
 
-		if( @$config['viewless'] === true || $ajax )
+		if( ( @$config['viewless'] === true || $ajax ) && strtolower( trim($format) ) !== 'text/html' )
 		{
 
 			//if ajax request is being made, and ajax is set

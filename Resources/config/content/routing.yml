@@ -3,4 +3,4 @@ website_bundle_content:
     path:     /{path}
     defaults: { _controller: WebsiteBundle:Content:resolve }
     requirements:
-        path: .+
+        path: (.+|)

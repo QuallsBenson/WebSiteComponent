@@ -21,7 +21,8 @@ parameters:
 
             page:
                 repository: 'web_components.content.page'
-                with: [ 'post:list' ]
+                with: 
+                    - ['post:view', [ slug, category ] ]
                 viewless: false
                 templates:
                     list: '::LandingPage:index.html.twig'
@@ -57,7 +58,7 @@ services:
         class: WebComponents\SiteBundle\Page\PageRepository
 
     web_components.content.post:
-        class: WebComponents\SiteBundle\Content\Post\PostRepository     
+        class: WebComponents\SiteBundle\Post\PostRepository     
 
     web_components.search_provider:
         class: Quallsbenson\WebComponents\Search\SearchProvider
