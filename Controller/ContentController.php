@@ -222,10 +222,6 @@ class ContentController extends SiteController
 
 		$this->addLinkedContent( $repo, $queryInfo );
 
-		echo "<pre>";
-
-		var_dump( $this->siteData['content'] ); exit;
-
 
 		return $this->createResponse( $repo->getContentConfig(), $repo->getContentId(), $queryInfo, 200 );
 
