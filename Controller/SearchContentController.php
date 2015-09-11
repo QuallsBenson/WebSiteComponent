@@ -2,6 +2,7 @@
 
 use WebComponents\SiteBundle\Controller\SiteController;
 use Quallsbenson\WebComponents\Search\Interfaces\SearchProviderInterface;
+use Quallsbenson\WebComponents\Search\Interfaces\SearchResultProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 // Search Routes
@@ -16,6 +17,8 @@ class SearchContentController extends ContentController
 	public function searchAction( Request $request, $content = null )
 	{
 
+		$this->request = $request;
+
 		//if no content type given search all searchable content from query
 		$query    = $request->query;
 
@@ -25,6 +28,15 @@ class SearchContentController extends ContentController
 
 
 		$keywords = $query->get("keywords"); 
+
+		$config = $this->getSearchConfig();
+
+		foreach( $config["with"] as $with )
+		{
+
+			$this->evalContentExpression( $with );
+
+		}
 
 
 		//if no keywords/content given, show search landing page
@@ -66,7 +78,6 @@ class SearchContentController extends ContentController
 				'contentTypes' => $content
 		];
 
-		$config = $this->getSearchConfig();
 
 		return $this->createResponse( $config, 'search', [
 						'action'   => 'results',
@@ -80,6 +91,7 @@ class SearchContentController extends ContentController
 	{
 
 		$config = $this->getSearchConfig();
+
 
 		return $this->createResponse( $config, 'search', [
 						'action'   => 'index',

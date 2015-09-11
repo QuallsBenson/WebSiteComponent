@@ -91,7 +91,7 @@ class TwigExtension extends \Twig_Extension implements ContainerAwareInterface{
     	//if only one arg was passed, and that arg is a valid url
     	//return the string as is
 
-    	if( count( $args ) === 1 &&  @filter_var( $args[0] , FILTER_VALIDATE_URL) ){
+    	if( count( $args ) === 1 && ( @filter_var( $args[0] , FILTER_VALIDATE_URL) || $args[0] === "#" )  ){
 
     		return $args[0];
 
@@ -152,7 +152,7 @@ class TwigExtension extends \Twig_Extension implements ContainerAwareInterface{
     {
 
         //if already image object return 
-        if( $image instanceof Image ) return $image;
+        if( $image instanceof ImageInterface ) return $image;
 
 
         $factory = $this->getImageFactory();

@@ -222,6 +222,11 @@ class ContentController extends SiteController
 
 		$this->addLinkedContent( $repo, $queryInfo );
 
+		/*
+		echo "<pre>";
+
+		var_dump( $this->siteData['content'] ); exit;
+		*/
 
 		return $this->createResponse( $repo->getContentConfig(), $repo->getContentId(), $queryInfo, 200 );
 
@@ -407,7 +412,8 @@ class ContentController extends SiteController
 
 	public function createResponse( array $config, $contentType, array $data = array(), $code = 200 )
 	{
-		$request = $this->get('request');
+
+		$request = isset( $this->request ) ? $this->request : $this->get('request');
 
 		$ajax    = $request->isXmlHttpRequest();
 		$format  = $request->query->get("format"); 
