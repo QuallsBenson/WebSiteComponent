@@ -165,7 +165,23 @@ class ContentController extends SiteController
 		else
 		{
 
-			$repoConfig = $this->getRepository( $content )->getContentConfig();
+			try{
+
+
+				$repoConfig = $this->getRepository( $content )->getContentConfig();
+
+
+			} 
+
+			//if the content-type is undefined, give a 404 error
+
+			catch ( UndefinedContentTypeException $e ) {
+
+
+				throw $this->createNotFoundException("Content not found");
+
+
+			}
 
 			//if a valid config action is given, set as action
 
@@ -196,17 +212,33 @@ class ContentController extends SiteController
 		if( $action === 'list' )
 		{
 
-			//get data from repository and push to siteData array
-			$repo = $this->listAction( $content, $category, $page );
+			$param  = [ $content, $category, $page ];
 
 		}
 		else
 		{
 
-			//get data from repository and push to siteData array
-			$repo = $this->viewAction( $content, $slug, $category );
+			$param  = [ $content, $slug, $category ];
 
 		}
+
+		try{
+
+			$repo = call_user_func_array( [ $this, $action."Action" ], $param ); 
+
+		}
+		
+		//if the content-type is undefined, give a 404 error
+
+		catch ( UndefinedContentTypeException $e ) {
+
+
+			throw $this->createNotFoundException("Content not found");
+
+
+		}
+
+
 
 		$config = $repo->getContentConfig();
 
