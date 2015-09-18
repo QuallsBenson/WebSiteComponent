@@ -297,7 +297,7 @@ class ContentController extends SiteController
 	* display single record from database
 	**/
 
-	public function viewAction( $contentType, $slug, $category = null )
+	public function viewAction( $contentType, $slug = null, $category = null )
 	{
 
 		$repo    = $this->getRepository( $contentType );
