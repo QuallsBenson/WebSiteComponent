@@ -29,9 +29,9 @@
         <meta name="msapplication-TileImage" content="{{ asset( favicon_path ~ '/ms-icon-144x144.png' ) }}">
         <meta name="theme-color" content="#ffffff">
 
-        {% if google_webmaster_id is defined %}
+        {% if site_config['google_webmaster_id'] is defined %}
 
-        <meta name="google-site-verification" content="{{ google_webmaster_id }}" />
+        <meta name="google-site-verification" content="{{ site_config['google_webmaster_id'] }}" />
 
         {% endif %}
 
