@@ -16,20 +16,20 @@ class TwigExtension extends \Twig_Extension implements ContainerAwareInterface{
     use \WebComponents\SiteBundle\App\AppTrait;
 
 
-	public function setRouteService( Router $router )
-	{
+    public function setRouteService( Router $router )
+    {
 
-		$this->router = $router;
+        $this->router = $router;
 
-	}
+    }
 
 
-	public function getRouteService()
-	{
+    public function getRouteService()
+    {
 
-		return $this->router;
+        return $this->router;
 
-	}
+    }
 
 
     public function setImageFactory( ImageFactory $image )
@@ -64,6 +64,7 @@ class TwigExtension extends \Twig_Extension implements ContainerAwareInterface{
 
         return array(
             new \Twig_SimpleFilter('Image', array($this, 'imageFilter')),
+            new \Twig_SimpleFilter('slash', 'addslashes'),
         );
 
     }
@@ -76,28 +77,28 @@ class TwigExtension extends \Twig_Extension implements ContainerAwareInterface{
     public function urlFunction( $args )
     {
 
-    	$args = func_get_args();
+        $args = func_get_args();
 
-    	//if only one argument is passed, and that argument is an array
-    	//call the route generator with that argument
+        //if only one argument is passed, and that argument is an array
+        //call the route generator with that argument
 
-    	if( count( $args ) === 1 && @is_array( $args[0] ) )
-    	{
+        if( count( $args ) === 1 && @is_array( $args[0] ) )
+        {
 
-    		$args = $args[0];
+            $args = $args[0];
 
-    	}
+        }
 
-    	//if only one arg was passed, and that arg is a valid url
-    	//return the string as is
+        //if only one arg was passed, and that arg is a valid url
+        //return the string as is
 
-    	if( count( $args ) === 1 && ( @filter_var( $args[0] , FILTER_VALIDATE_URL) || $args[0] === "#" )  ){
+        if( count( $args ) === 1 && ( @filter_var( $args[0] , FILTER_VALIDATE_URL) || $args[0] === "#" )  ){
 
-    		return $args[0];
+            return $args[0];
 
-    	}
+        }
 
-    	return call_user_func_array( [ $this->getRouteService(), "generate" ] , $args );
+        return call_user_func_array( [ $this->getRouteService(), "generate" ] , $args );
 
     }
 
