@@ -4,6 +4,7 @@ parameters:
     web_components.globals:
         example: ral
         site_title: Website Name
+        page_desc: Description of the site
         site_headline: A Cool Headline
         favicon_path: path/to/site/favicons
         callrail_required: false
