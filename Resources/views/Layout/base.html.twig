@@ -6,6 +6,12 @@
 
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        {% for style in page_styles %}
+
+          <link rel="stylesheet" href="{{ asset( style ) }}">
+
+        {% endfor %}
+
         <link rel="stylesheet" href="{{ asset( css_path ~ '/critical.css') }}">
         <link rel="stylesheet" href="{{ asset( css_path ~ '/theme.css') }}">
 
