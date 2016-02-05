@@ -6,7 +6,7 @@
 
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {% for style in page_styles %}
+        {% for style in page_styles|default([]) %}
 
           <link rel="stylesheet" href="{{ asset( style ) }}">
 
