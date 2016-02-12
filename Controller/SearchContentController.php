@@ -50,7 +50,7 @@ class SearchContentController extends ContentController
 		$results  = $this->searchContent( $keywords, $content )->results();
 
 		//sort results by relevence
-		$results->order();
+		//$results->order();
 
 
 		//if filters are defined, filter results
